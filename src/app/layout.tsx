@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ATS Pulse — Precision AI Resume Analyzer & Job Fit Engine",
+  title: "ATS Pulse — AI Resume Analyzer",
   description:
-    "Audit your resume for Applicant Tracking Systems (ATS) with Llama 3.3 on Groq. Extract keywords, detect missing qualifications, and receive executive bullet improvements instantly.",
+    "Compare your resume with a target job description, find underrepresented keywords, and get practical suggestions. ATS scores are estimates, not hiring guarantees.",
   keywords: [
     "ATS resume checker",
     "AI resume analyzer",
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
     "job description match",
     "applicant tracking system",
   ],
-  authors: [{ name: "ATS Pulse Team" }],
+  authors: [{ name: "ATS Pulse" }],
 };
 
 export default function RootLayout({
@@ -34,14 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col font-sans">
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

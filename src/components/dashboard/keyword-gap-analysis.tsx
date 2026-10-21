@@ -36,8 +36,8 @@ export function KeywordGapAnalysis({
   };
 
   return (
-    <div className="glass-surface premium-card rounded-[26px] p-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-100 pb-4 dark:border-neutral-800">
+    <section className="surface-card p-5 sm:p-6">
+      <div className="flex flex-col gap-3 border-b border-neutral-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-base font-bold text-neutral-900 dark:text-white">
             ATS Keyword Gap Analysis
@@ -92,24 +92,27 @@ export function KeywordGapAnalysis({
           </h4>
 
           {/* Filter and Search Bar */}
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="relative w-full sm:w-auto">
               <Search className="pointer-events-none absolute left-2.5 top-2 h-3.5 w-3.5 text-neutral-400" />
               <input
                 type="text"
+                aria-label="Search missing keywords and their context"
                 placeholder="Search gap keywords..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="rounded-lg border border-neutral-300 bg-neutral-50 py-1 pl-8 pr-3 text-xs text-neutral-900 focus:border-indigo-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+                className="field-control min-h-10 w-full py-1 pl-8 pr-3 text-xs sm:w-56"
               />
             </div>
 
-            <div className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-100 p-0.5 dark:border-neutral-800 dark:bg-neutral-800">
+            <div role="group" aria-label="Filter keywords by priority" className="flex w-fit max-w-full flex-wrap items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-100 p-0.5">
               {(["all", "high", "medium", "low"] as const).map((lvl) => (
                 <button
                   key={lvl}
+                  type="button"
+                  aria-pressed={filter === lvl}
                   onClick={() => setFilter(lvl)}
-                  className={`rounded-md px-2 py-0.5 text-[11px] font-medium capitalize transition ${
+                  className={`min-h-10 rounded-md px-2 text-[11px] font-medium capitalize transition ${
                     filter === lvl
                       ? "bg-white text-neutral-900 shadow-xs dark:bg-neutral-900 dark:text-white"
                       : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400"
@@ -156,6 +159,6 @@ export function KeywordGapAnalysis({
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

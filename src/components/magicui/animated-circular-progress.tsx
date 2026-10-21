@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { NumberTicker } from "./number-ticker";
 
@@ -24,6 +24,7 @@ export function AnimatedCircularProgress({
   label,
   subLabel,
 }: AnimatedCircularProgressProps) {
+  const prefersReducedMotion = useReducedMotion();
   const uniqueId = useId();
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
   const radius = (size - strokeWidth) / 2;
@@ -48,6 +49,8 @@ export function AnimatedCircularProgress({
         height={size}
         viewBox={`0 0 ${size} ${size}`}
         className="rotate-[-90deg] transform"
+        role="img"
+        aria-label={`${label || "Score"}: ${value} out of ${max}`}
       >
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -64,7 +67,7 @@ export function AnimatedCircularProgress({
           stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="none"
-          className="text-neutral-200/80 dark:text-neutral-800/80"
+          className="text-neutral-200"
         />
 
         {/* Animated Progress Ring */}
@@ -77,9 +80,9 @@ export function AnimatedCircularProgress({
           fill="none"
           strokeLinecap="round"
           strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
+          initial={{ strokeDashoffset: prefersReducedMotion ? strokeDashoffset : circumference }}
           animate={{ strokeDashoffset }}
-          transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.9, ease: "easeOut", delay: prefersReducedMotion ? 0 : 0.1 }}
         />
       </svg>
 
@@ -88,21 +91,21 @@ export function AnimatedCircularProgress({
         <div className="flex items-baseline">
           <NumberTicker
             value={value}
-            className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-4xl"
+            className="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl"
           />
-          <span className="ml-0.5 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+          <span className="ml-0.5 text-sm font-medium text-neutral-500">
             /{max}
           </span>
         </div>
         {label && (
-          <span className="text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400">
+          <span className="text-[11px] font-semibold text-neutral-600">
             {label}
           </span>
         )}
       </div>
 
       {subLabel && (
-        <span className="mt-2 text-xs font-medium text-neutral-600 dark:text-neutral-300">
+        <span className="mt-2 text-xs font-medium text-neutral-600">
           {subLabel}
         </span>
       )}

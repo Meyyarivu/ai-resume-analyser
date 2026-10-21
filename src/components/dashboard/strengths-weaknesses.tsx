@@ -12,7 +12,7 @@ export function StrengthsWeaknesses({
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       {/* Strengths Card */}
-      <div className="glass-surface premium-card rounded-[26px] p-6">
+      <section className="surface-card p-5 sm:p-6">
         <div className="flex items-center gap-2 border-b border-neutral-100 pb-3 dark:border-neutral-800">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
             <ShieldCheck className="h-4 w-4" />
@@ -28,6 +28,7 @@ export function StrengthsWeaknesses({
         </div>
 
         <ul className="mt-4 space-y-3">
+          {strengths.length === 0 && <li className="text-sm text-neutral-600">No strengths were returned for this analysis.</li>}
           {strengths.map((item, idx) => (
             <li
               key={idx}
@@ -38,10 +39,10 @@ export function StrengthsWeaknesses({
             </li>
           ))}
         </ul>
-      </div>
+      </section>
 
       {/* Weaknesses / Opportunities Card */}
-      <div className="glass-surface premium-card rounded-[26px] p-6">
+      <section className="surface-card p-5 sm:p-6">
         <div className="flex items-center gap-2 border-b border-neutral-100 pb-3 dark:border-neutral-800">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
             <AlertTriangle className="h-4 w-4" />
@@ -57,6 +58,7 @@ export function StrengthsWeaknesses({
         </div>
 
         <ul className="mt-4 space-y-3">
+          {weaknesses.length === 0 && <li className="text-sm text-neutral-600">No areas for improvement were returned for this analysis.</li>}
           {weaknesses.map((item, idx) => (
             <li
               key={idx}
@@ -67,7 +69,7 @@ export function StrengthsWeaknesses({
             </li>
           ))}
         </ul>
-      </div>
+      </section>
     </div>
   );
 }

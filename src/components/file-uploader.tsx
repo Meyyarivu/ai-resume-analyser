@@ -1,16 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import {
-  Upload,
-  FileText,
-  CheckCircle2,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Trash2,
-  Sparkles,
-} from "lucide-react";
+import React, { useRef, useState } from "react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff, FileText, Sparkles, Trash2, Upload } from "lucide-react";
 import { formatFileSize, cn } from "@/lib/utils";
 import { SAMPLE_RESUMES } from "@/lib/sample-data";
 
@@ -21,101 +12,55 @@ interface FileUploaderProps {
   setFileName: (name: string) => void;
   isExtracting: boolean;
   setIsExtracting: (val: boolean) => void;
+  isInvalid?: boolean;
 }
 
-export function FileUploader({
-  resumeText,
-  setResumeText,
-  fileName,
-  setFileName,
-  isExtracting,
-  setIsExtracting,
-}: FileUploaderProps) {
+export function FileUploader({ resumeText, setResumeText, fileName, setFileName, isExtracting, setIsExtracting, isInvalid = false }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [fileMeta, setFileMeta] = useState<{
-    size: number;
-    pages?: number;
-    words?: number;
-  } | null>(null);
+  const [fileMeta, setFileMeta] = useState<{ size?: number; pages?: number; words?: number } | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [activeTab, setActiveTab] = useState<"upload" | "paste">("upload");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const maxFileBytes = 5 * 1024 * 1024;
 
   const handleFileProcess = async (file: File) => {
     setErrorMessage(null);
-
-    // Validation
     if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
-      setErrorMessage("Please upload a valid PDF document (.pdf format).");
+      setErrorMessage("Please choose a PDF document (.pdf).");
       return;
     }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage("File exceeds 5MB size limit. Please upload a smaller PDF.");
+    if (file.size > maxFileBytes) {
+      setErrorMessage("This file is larger than 5 MB. Please choose a smaller PDF.");
       return;
     }
 
     setIsExtracting(true);
     setFileName(file.name);
     setFileMeta({ size: file.size });
-
     try {
       const formData = new FormData();
       formData.append("file", file);
-
-      const res = await fetch("/api/extract-pdf", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to extract text from PDF.");
-      }
-
+      const response = await fetch("/api/extract-pdf", { method: "POST", body: formData });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error || "Could not extract text from this PDF.");
       setResumeText(data.text);
-      setFileMeta({
-        size: data.fileSize || file.size,
-        pages: data.pageCount,
-        words: data.wordCount,
-      });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error parsing PDF.";
-      setErrorMessage(msg);
+      setFileMeta({ size: data.fileSize || file.size, pages: data.pageCount, words: data.wordCount });
+    } catch (error: unknown) {
+      setErrorMessage(error instanceof Error ? error.message : "Could not read this PDF. Please try another file.");
       setResumeText("");
+      setFileName("");
+      setFileMeta(null);
     } finally {
       setIsExtracting(false);
     }
   };
 
-  const onDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const onDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileProcess(e.dataTransfer.files[0]);
-    }
-  };
-
   const handleSampleResume = (index: number) => {
     const sample = SAMPLE_RESUMES[index];
-    setFileName(sample.title + ".pdf");
+    setFileName(`${sample.title} — sample`);
     setResumeText(sample.text);
-    setFileMeta({
-      size: 42000,
-      pages: 1,
-      words: sample.text.split(/\s+/).length,
-    });
+    setFileMeta({ words: sample.text.split(/\s+/).length });
     setErrorMessage(null);
   };
 
@@ -124,213 +69,81 @@ export function FileUploader({
     setFileName("");
     setFileMeta(null);
     setErrorMessage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const openFilePicker = () => fileInputRef.current?.click();
+
   return (
-    <div className="glass-surface premium-card flex h-full flex-col rounded-[26px] p-5 sm:p-6">
-      {/* Card Header & Tabs */}
-      <div className="flex items-center justify-between border-b border-neutral-100 pb-3 dark:border-neutral-800">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
-            <FileText className="h-4 w-4" />
-          </div>
+    <section className="surface-card interactive-surface flex h-full flex-col p-5 sm:p-6" aria-labelledby="resume-heading">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 pb-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-secondary)] text-neutral-700"><FileText className="h-4 w-4" aria-hidden="true" /></span>
           <div>
-            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-              1. Your Resume
-            </h2>
+            <h2 id="resume-heading" className="text-sm font-semibold text-neutral-900">Your resume</h2>
+            <p className="mt-0.5 text-xs text-neutral-500">Step 1 · PDF or plain text</p>
           </div>
         </div>
-
-        {/* Tab switch: Upload PDF vs Paste */}
-        <div className="flex rounded-lg bg-neutral-100 p-0.5 dark:bg-neutral-800">
-          <button
-            type="button"
-            onClick={() => setActiveTab("upload")}
-            className={cn(
-              "rounded-md px-2.5 py-1 text-xs font-medium transition",
-              activeTab === "upload"
-                ? "bg-white text-neutral-900 shadow-xs dark:bg-neutral-950 dark:text-white"
-                : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
-            )}
-          >
-            Upload PDF
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("paste")}
-            className={cn(
-              "rounded-md px-2.5 py-1 text-xs font-medium transition",
-              activeTab === "paste"
-                ? "bg-white text-neutral-900 shadow-xs dark:bg-neutral-950 dark:text-white"
-                : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
-            )}
-          >
-            Paste Text
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="mt-4 flex-1">
-        {activeTab === "upload" ? (
-          <div>
-            {!resumeText && !isExtracting ? (
-              <div
-                onDragOver={onDragOver}
-                onDragLeave={onDragLeave}
-                onDrop={onDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={cn(
-                  "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed p-8 text-center transition-all duration-300",
-                  isDragging
-                    ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30"
-                    : "border-neutral-300 bg-neutral-50/50 hover:border-neutral-400 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-950/40 dark:hover:border-neutral-600"
-                )}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleFileProcess(e.target.files[0]);
-                    }
-                  }}
-                />
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-xs dark:bg-neutral-800">
-                  <Upload className="h-6 w-6 text-neutral-600 dark:text-neutral-300" />
-                </div>
-                <p className="mt-3 text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                  Drop your resume PDF here, or{" "}
-                  <span className="text-indigo-600 dark:text-indigo-400">browse</span>
-                </p>
-                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                  Supports standard text-based PDFs up to 5 MB
-                </p>
-              </div>
-            ) : isExtracting ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50/60 p-8 dark:border-neutral-800 dark:bg-neutral-950/50">
-                <div className="relative flex h-10 w-10 items-center justify-center">
-                  <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent dark:border-indigo-400" />
-                </div>
-                <p className="mt-3 text-sm font-medium text-neutral-800 dark:text-neutral-200">
-                  Extracting and parsing resume text securely...
-                </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Validating PDF structure and character tokens
-                </p>
-              </div>
-            ) : (
-              /* Uploaded & Parsed File Card */
-              <div className="rounded-xl border border-emerald-500/30 bg-emerald-50/20 p-4 transition dark:border-emerald-500/20 dark:bg-emerald-950/20">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
-                      <CheckCircle2 className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-neutral-900 line-clamp-1 dark:text-white">
-                        {fileName || "Resume uploaded"}
-                      </h4>
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {fileMeta?.size ? formatFileSize(fileMeta.size) : "Ready"} •{" "}
-                        {fileMeta?.words ? `${fileMeta.words} words` : "Parsed"}
-                        {fileMeta?.pages ? ` • ${fileMeta.pages} page(s)` : ""}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowPreview(!showPreview)}
-                      title={showPreview ? "Hide Preview" : "View Extracted Text"}
-                      className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-200/50 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
-                    >
-                      {showPreview ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleClear}
-                      title="Remove and upload different resume"
-                      className="rounded-lg p-1.5 text-neutral-500 hover:bg-rose-100 hover:text-rose-600 dark:text-neutral-400 dark:hover:bg-rose-950/50 dark:hover:text-rose-400"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {showPreview && (
-                  <div className="mt-3 max-h-48 overflow-y-auto rounded-lg border border-neutral-200 bg-white p-3 font-mono text-[11px] leading-relaxed text-neutral-700 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300">
-                    {resumeText}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Paste Plain Text Area */
-          <div>
-            <textarea
-              rows={7}
-              value={resumeText}
-              onChange={(e) => {
-                setResumeText(e.target.value);
-                setFileName("Pasted Resume Text");
-              }}
-              placeholder="Paste your plain text resume or Markdown CV here..."
-              className="w-full rounded-xl border border-neutral-300 bg-neutral-50/70 p-3.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-indigo-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-950/60 dark:text-white"
-            />
-            <div className="mt-1 flex items-center justify-between text-[11px] text-neutral-500">
-              <span>{resumeText.length} characters</span>
-              {resumeText && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="text-rose-500 hover:underline"
-                >
-                  Clear text
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Error Alert */}
-        {errorMessage && (
-          <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-50/50 p-3 text-xs text-rose-700 dark:border-rose-500/20 dark:bg-rose-950/30 dark:text-rose-300">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Quick Sample Selector */}
-      <div className="mt-4 border-t border-neutral-100 pt-3 dark:border-neutral-800">
-        <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
-          Or load test resume:
-        </span>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {SAMPLE_RESUMES.map((sample, idx) => (
-            <button
-              key={sample.title}
-              type="button"
-              onClick={() => handleSampleResume(idx)}
-              className="flex items-center gap-1 rounded-md border border-neutral-200/80 bg-neutral-50 px-2 py-1 text-[11px] font-medium text-neutral-700 transition hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-300 dark:hover:border-indigo-700 dark:hover:bg-indigo-950/40"
-            >
-              <Sparkles className="h-3 w-3 text-indigo-500" />
-              <span>{sample.role}</span>
+        <div role="tablist" aria-label="Resume input method" className="flex rounded-xl bg-[var(--surface-secondary)] p-1">
+          {([ ["upload", "Upload PDF"], ["paste", "Paste text"] ] as const).map(([tab, label]) => (
+            <button id={`resume-tab-${tab}`} key={tab} type="button" role="tab" aria-selected={activeTab === tab} aria-controls="resume-input-panel" onClick={() => setActiveTab(tab)} className={cn("min-h-10 rounded-lg px-3 text-xs font-medium transition", activeTab === tab ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-600 hover:text-neutral-900")}>
+              {label}
             </button>
           ))}
         </div>
       </div>
-    </div>
+
+      <div id="resume-input-panel" role="tabpanel" aria-labelledby={`resume-tab-${activeTab}`} className="mt-5 flex-1">
+        {activeTab === "upload" ? (
+          <div>
+            {!resumeText && !isExtracting ? (
+              <div onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={(event) => { event.preventDefault(); setIsDragging(false); const file = event.dataTransfer.files?.[0]; if (file) void handleFileProcess(file); }} className={cn("flex min-h-56 flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center transition-colors", isDragging ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border-strong)] bg-[#fbfbfa] hover:border-neutral-400")}>
+                <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" className="sr-only" aria-label="Choose resume PDF" onChange={(event) => { const file = event.target.files?.[0]; if (file) void handleFileProcess(file); }} />
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-neutral-700 shadow-sm"><Upload className="h-5 w-5" aria-hidden="true" /></span>
+                <p className="mt-4 text-sm font-semibold text-neutral-900">Drop your PDF here</p>
+                <p id="resume-upload-hint" className="mt-1 text-xs text-neutral-500">Text-based PDF · Up to 5 MB</p>
+                <button type="button" onClick={openFilePicker} className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-800 shadow-sm transition hover:bg-neutral-50 active:scale-[.98]">Choose PDF</button>
+              </div>
+            ) : isExtracting ? (
+              <div className="flex min-h-56 flex-col items-center justify-center rounded-2xl border border-neutral-200 bg-[#fbfbfa] p-6 text-center" role="status" aria-live="polite">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent motion-reduce:animate-none" aria-hidden="true" />
+                <p className="mt-4 text-sm font-medium text-neutral-800">Reading your PDF</p>
+                <p className="mt-1 text-xs text-neutral-500">Extracting selectable text securely on the server.</p>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-green-200 bg-[var(--success-soft)] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[var(--success)]"><CheckCircle2 className="h-5 w-5" aria-hidden="true" /></span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-neutral-900">{fileName || "Resume ready"}</p>
+                      <p className="mt-1 text-xs text-neutral-600">{fileMeta?.size ? formatFileSize(fileMeta.size) : "Sample resume"}{fileMeta?.words ? ` · ${fileMeta.words} words` : ""}{fileMeta?.pages ? ` · ${fileMeta.pages} ${fileMeta.pages === 1 ? "page" : "pages"}` : ""}</p>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button type="button" onClick={() => setShowPreview((value) => !value)} aria-label={showPreview ? "Hide extracted resume text" : "Preview extracted resume text"} className="flex h-10 w-10 items-center justify-center rounded-lg text-neutral-600 hover:bg-white"><span className="sr-only">{showPreview ? "Hide text" : "Preview text"}</span>{showPreview ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}</button>
+                    <button type="button" onClick={handleClear} aria-label="Remove resume" className="flex h-10 w-10 items-center justify-center rounded-lg text-neutral-600 hover:bg-white hover:text-[var(--danger)]"><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
+                  </div>
+                </div>
+                {showPreview && <pre className="mt-4 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-neutral-200 bg-white p-3 text-xs leading-5 text-neutral-700">{resumeText}</pre>}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            <label htmlFor="resume-text" className="mb-2 block text-sm font-medium text-neutral-800">Paste resume text</label>
+            <textarea id="resume-text" rows={8} maxLength={50000} value={resumeText} onChange={(event) => { setResumeText(event.target.value); setFileName(event.target.value ? "Pasted resume text" : ""); setFileMeta(null); }} placeholder="Paste your resume text here…" aria-invalid={isInvalid} aria-describedby="resume-text-count resume-invalid" className="field-control w-full resize-y p-3.5 text-sm leading-6" />
+            <div id="resume-text-count" className="mt-2 flex justify-between gap-3 text-xs text-neutral-500"><span>At least 50 characters, up to 50,000.</span><span className="tabular-nums">{resumeText.length.toLocaleString()} / 50,000</span></div>
+          </div>
+        )}
+        {isInvalid && <p id="resume-invalid" className="mt-2 text-xs font-medium text-red-800">Add 50–50,000 characters of resume text to continue.</p>}
+        {errorMessage && <p role="alert" className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-[var(--danger-soft)] p-3 text-sm leading-5 text-red-800"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{errorMessage}</p>}
+      </div>
+
+      <div className="mt-5 border-t border-neutral-100 pt-4">
+        <p className="text-xs font-medium text-neutral-600">Try a clearly labeled sample</p>
+        <div className="mt-2 flex flex-wrap gap-2">{SAMPLE_RESUMES.map((sample, index) => <button key={sample.title} type="button" onClick={() => handleSampleResume(index)} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"><Sparkles className="h-3 w-3 text-neutral-500" aria-hidden="true" />{sample.role}</button>)}</div>
+      </div>
+    </section>
   );
 }

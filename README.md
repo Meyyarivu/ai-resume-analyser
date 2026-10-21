@@ -1,18 +1,18 @@
 # ATS Pulse — AI Resume Analyzer & Job Fit Engine
 
-> **Production-grade AI Resume & ATS Audit SaaS** built with **Next.js (App Router)**, **TypeScript**, **Tailwind CSS**, **Magic UI**, and **Groq Llama 3.3 70B**.
+> AI resume analysis built with **Next.js (App Router)**, **TypeScript**, **Tailwind CSS**, **Magic UI**, and the configurable Groq API.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16%20App%20Router-black?logo=next.js)
-![Groq](https://img.shields.io/badge/Groq%20LPU-Llama%203.3%2070B-orange)
+![Groq](https://img.shields.io/badge/AI-Groq%20API-orange)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38bdf8?logo=tailwindcss)
-![Security](https://img.shields.io/badge/Security-Zero%20Data%20Retention-emerald)
+![Security](https://img.shields.io/badge/API%20key-Server%20configured-emerald)
 
 ---
 
 ## 🌟 Overview
 
-**ATS Pulse** empowers job seekers and engineers to audit their resumes against actual job descriptions before submitting applications. Powered by ultra-low-latency Groq LPUs running Meta's **Llama 3.3 70B**, it parses resumes, validates ATS formatting, performs semantic keyword gap matching, and synthesizes executive-level bullet revisions in seconds.
+**ATS Pulse** helps job seekers compare a resume with a target job description. It extracts PDF text on the server, requests role-specific feedback from the configured Groq model, and displays returned scores, keyword gaps, strengths, and suggestions. Scores are estimates and do not predict an employer's decision.
 
 ---
 
@@ -25,19 +25,13 @@
   - Pinpoints missing or underrepresented keywords categorized by urgency (`HIGH`, `MEDIUM`, `LOW` priority) with context on where to place them.
 - **✨ Actionable Suggestions with Before & After Rewrites:** Real XYZ-formula bullet rewrites comparing weak original phrasing against metric-driven impact statements.
 - **📝 Professional Summary Optimizer:** Produces a crisp, role-targeted executive bio with 1-click clipboard copying.
-- **🪄 Magic UI Polish:**
-  - **ShimmerButton** with animated border radiance
-  - **BorderBeam** laser border animation on score cards
-  - **NumberTicker** animated score increments
-  - **DotPattern** subtle Apple-style background grid
-  - **AnimatedCircularProgress** glowing SVG progress gauges
-  - **Confetti Celebration** on achieving 80+ ATS score
-- **🌓 Dark & Light Modes:** Seamless zero-flash Apple dark mode and clean light mode.
+- **🪄 Motion:** A restrained shimmer on the primary action, subtle result reveals, and an animated score indicator, with reduced-motion support.
+- **☀️ Light interface:** Warm neutral surfaces, readable report cards, and glass used for the floating header and dialogs.
 - **🛡️ Enterprise Security & Privacy:**
-  - **Zero data retention:** Uploaded resumes and parsed buffers are never stored on disk or persistent databases.
+  - **No app history:** The application does not save resumes to an account or analysis history.
   - **Prompt Injection Isolation:** Resume text is isolated inside `<candidate_resume_text>` tags with explicit model instructions to ignore embedded jailbreaks or override instructions.
   - **Server-Only API Key:** `GROQ_API_KEY` is strictly accessed server-side and never exposed to client bundles.
-  - **Demo Simulated Fallback:** Includes full demo mode for offline testing and immediate evaluation without requiring an API key.
+  - **Sample inputs:** Optional resume and job description samples help preview the input workflow. Analysis requires a valid configured or temporary Groq API key.
 
 ---
 
@@ -78,7 +72,7 @@ Open \`.env.local\` and add your Groq API key:
 GROQ_API_KEY=gsk_your_actual_key_here
 \`\`\`
 
-> **Note:** If \`GROQ_API_KEY\` is left blank, ATS Pulse automatically runs in **High-Fidelity Demo Mode** so you can preview the complete dashboard and interaction immediately. You can also paste an API key directly into the in-app modal.
+> **Note:** Analysis requires a Groq API key. Set \`GROQ_API_KEY\` on the server, or enter a temporary key in the app. Sample resume and job description inputs are provided; the app does not fabricate analysis results when a key is missing or the provider response is invalid.
 
 ### 3. Run the Development Server
 

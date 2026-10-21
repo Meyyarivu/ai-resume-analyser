@@ -31,7 +31,7 @@ export function ActionableSuggestions({
   };
 
   return (
-    <div className="glass-surface premium-card rounded-[26px] p-6">
+    <section className="surface-card p-5 sm:p-6">
       <div className="flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-neutral-800">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
@@ -42,7 +42,7 @@ export function ActionableSuggestions({
               Actionable Improvement Suggestions
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Prioritized recommendations to elevate keyword resonance and interview callback rate.
+              Practical suggestions based on the resume and target role.
             </p>
           </div>
         </div>
@@ -53,6 +53,7 @@ export function ActionableSuggestions({
       </div>
 
       <div className="mt-5 space-y-4">
+        {suggestions.length === 0 && <p className="rounded-xl bg-[var(--surface-secondary)] p-4 text-sm text-neutral-600">No improvement suggestions were returned for this analysis.</p>}
         {suggestions.map((item, idx) => (
           <div
             key={idx}
@@ -99,11 +100,12 @@ export function ActionableSuggestions({
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={() =>
                       handleCopy(item.exampleBeforeAfter!.after, idx)
                     }
-                    title="Copy optimized bullet"
-                    className="shrink-0 rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+                    aria-label={copiedIdx === idx ? "Optimized bullet copied" : "Copy optimized bullet"}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
                   >
                     {copiedIdx === idx ? (
                       <Check className="h-3.5 w-3.5 text-emerald-500" />
@@ -117,6 +119,6 @@ export function ActionableSuggestions({
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

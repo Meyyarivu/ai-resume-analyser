@@ -1,59 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
-import confetti from "canvas-confetti";
 import { Award, CheckCircle2, TrendingUp, BarChart3, AlertTriangle } from "lucide-react";
 import { AnalysisResult } from "@/types/analyzer";
 import { AnimatedCircularProgress } from "@/components/magicui/animated-circular-progress";
 import { NumberTicker } from "@/components/magicui/number-ticker";
-import { BorderBeam } from "@/components/magicui/border-beam";
 
 interface ScoreOverviewProps {
   data: AnalysisResult;
 }
 
 export function ScoreOverview({ data }: ScoreOverviewProps) {
-  useEffect(() => {
-    if (data.atsCompatibilityScore >= 80) {
-      try {
-        confetti({
-          particleCount: 60,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ["#3b82f6", "#6366f1", "#10b981", "#a855f7"],
-        });
-      } catch {
-        // Safe confetti fallback
-      }
-    }
-  }, [data.atsCompatibilityScore]);
-
   const getAtsGrade = (score: number) => {
     if (score >= 85)
       return {
-        label: "Excellent Fit (Tier 1)",
+        label: "Strong alignment",
         color: "text-emerald-700 bg-emerald-50 border-emerald-300 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-800",
-        description: "High probability of passing automated enterprise screening.",
+        description: "The resume aligns well with the provided role details.",
         icon: CheckCircle2,
       };
     if (score >= 70)
       return {
-        label: "Strong Contender (Tier 2)",
+        label: "Good alignment",
         color: "text-blue-700 bg-blue-50 border-blue-300 dark:text-blue-400 dark:bg-blue-950/50 dark:border-blue-800",
-        description: "Competitive match. Minor keyword additions can push into top 10%.",
+        description: "A few focused changes may improve the role match.",
         icon: TrendingUp,
       };
     if (score >= 55)
       return {
-        label: "Moderate Alignment (Tier 3)",
+        label: "Some alignment",
         color: "text-amber-700 bg-amber-50 border-amber-300 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-800",
-        description: "Meets baseline criteria but misses critical keywords or metrics.",
+        description: "Review the missing skills and keywords below.",
         icon: AlertTriangle,
       };
     return {
-      label: "Needs Optimization (Tier 4)",
+      label: "More tailoring needed",
       color: "text-rose-700 bg-rose-50 border-rose-300 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-800",
-      description: "Significant structural or skill gaps compared to role expectations.",
+      description: "The resume could be tailored more closely to this role.",
       icon: AlertTriangle,
     };
   };
@@ -64,14 +46,13 @@ export function ScoreOverview({ data }: ScoreOverviewProps) {
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
       {/* Main Score Hero Card */}
-      <div className="glass-surface premium-card relative overflow-hidden rounded-[26px] p-6 lg:col-span-1">
-        <BorderBeam size={220} duration={12} delay={0} />
+      <section className="surface-card relative overflow-hidden p-5 sm:p-6 lg:col-span-1" aria-labelledby="estimated-score-title">
 
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400">
-            ATS Compatibility Score
+          <span id="estimated-score-title" className="text-sm font-semibold text-neutral-800">
+            Estimated ATS compatibility
           </span>
-          <Award className="h-4 w-4 text-indigo-500" />
+          <Award className="h-4 w-4 text-blue-700" />
         </div>
 
         <div className="mt-4 flex flex-col items-center justify-center">
@@ -79,7 +60,7 @@ export function ScoreOverview({ data }: ScoreOverviewProps) {
             value={data.atsCompatibilityScore}
             size={160}
             strokeWidth={14}
-            label="ATS MATCH"
+            label="ESTIMATE"
           />
 
           <div
@@ -89,18 +70,19 @@ export function ScoreOverview({ data }: ScoreOverviewProps) {
             <span>{grade.label}</span>
           </div>
 
-          <p className="mt-2 text-center text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="mt-3 max-w-xs text-center text-xs leading-5 text-neutral-600">
             {grade.description}
           </p>
+          <p className="mt-2 max-w-xs text-center text-[11px] leading-5 text-neutral-500">An estimate based on this resume and job description. Employers use different systems and criteria.</p>
         </div>
-      </div>
+      </section>
 
       {/* Sub-Metrics and Breakdown */}
-      <div className="glass-surface premium-card flex flex-col justify-between rounded-[26px] p-6 lg:col-span-2">
+      <section className="surface-card flex flex-col justify-between p-5 sm:p-6 lg:col-span-2">
         <div>
           <div className="flex items-center justify-between border-b border-neutral-100 pb-3 dark:border-neutral-800">
             <div className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-indigo-500" />
+              <BarChart3 className="h-4 w-4 text-blue-700" />
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
                 Detailed Match Diagnostics
               </h3>
@@ -111,7 +93,7 @@ export function ScoreOverview({ data }: ScoreOverviewProps) {
           </div>
 
           {/* Quick Metrics 3-Col Bar */}
-          <div className="mt-4 grid grid-cols-3 gap-3">
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
             <div className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-3 text-center dark:border-neutral-800 dark:bg-neutral-950/60">
               <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
                 Skill Match
@@ -134,7 +116,7 @@ export function ScoreOverview({ data }: ScoreOverviewProps) {
                   value={data.experienceRelevanceScore}
                   className="text-2xl font-bold text-neutral-900 dark:text-white"
                 />
-                <span className="text-sm text-neutral-400">/100</span>
+                <span className="text-sm text-neutral-500">/100</span>
               </div>
             </div>
 
@@ -145,7 +127,7 @@ export function ScoreOverview({ data }: ScoreOverviewProps) {
               <div className="mt-1 flex items-baseline justify-center">
                 <NumberTicker
                   value={data.overallScore}
-                  className="text-2xl font-bold text-indigo-600 dark:text-indigo-400"
+                  className="text-2xl font-semibold text-blue-700"
                 />
                 <span className="text-sm text-neutral-400">/100</span>
               </div>
@@ -183,7 +165,7 @@ export function ScoreOverview({ data }: ScoreOverviewProps) {
                 </div>
                 <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000 ease-out"
+                    className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-700 ease-out motion-reduce:duration-0"
                     style={{ width: `${section.score}%` }}
                   />
                 </div>
@@ -193,13 +175,13 @@ export function ScoreOverview({ data }: ScoreOverviewProps) {
         </div>
 
         {/* Executive Summary Quote */}
-        <div className="mt-5 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3.5 text-xs leading-relaxed text-neutral-700 dark:border-indigo-950 dark:bg-indigo-950/20 dark:text-neutral-300">
-          <strong className="text-indigo-950 dark:text-indigo-300 font-semibold">
+        <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50/60 p-4 text-sm leading-6 text-neutral-700">
+          <strong className="font-semibold text-neutral-900">
             Executive Summary:{" "}
           </strong>
           {data.resumeSummary}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

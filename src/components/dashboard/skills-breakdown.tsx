@@ -7,7 +7,7 @@ interface SkillsBreakdownProps {
 
 export function SkillsBreakdown({ skills }: SkillsBreakdownProps) {
   return (
-    <div className="glass-surface premium-card rounded-[26px] p-6">
+    <section className="surface-card p-5 sm:p-6">
       <div className="border-b border-neutral-100 pb-3 dark:border-neutral-800">
         <h3 className="text-base font-bold text-neutral-900 dark:text-white">
           Extracted Competencies & Skill Matrix
@@ -29,6 +29,7 @@ export function SkillsBreakdown({ skills }: SkillsBreakdownProps) {
             </h4>
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5">
+            {skills.technical.length === 0 && <span className="text-sm text-neutral-500">No skills returned.</span>}
             {skills.technical.map((skill) => (
               <span
                 key={skill}
@@ -51,6 +52,7 @@ export function SkillsBreakdown({ skills }: SkillsBreakdownProps) {
             </h4>
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5">
+            {skills.toolsAndFrameworks.length === 0 && <span className="text-sm text-neutral-500">No tools returned.</span>}
             {skills.toolsAndFrameworks.map((tool) => (
               <span
                 key={tool}
@@ -73,6 +75,7 @@ export function SkillsBreakdown({ skills }: SkillsBreakdownProps) {
             </h4>
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5">
+            {skills.soft.length === 0 && <span className="text-sm text-neutral-500">No soft skills returned.</span>}
             {skills.soft.map((softSkill) => (
               <span
                 key={softSkill}
@@ -84,6 +87,6 @@ export function SkillsBreakdown({ skills }: SkillsBreakdownProps) {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

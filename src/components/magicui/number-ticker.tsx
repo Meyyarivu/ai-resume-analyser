@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useInView, useMotionValue, useSpring } from "framer-motion";
+import { useInView, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface NumberTickerProps {
@@ -19,8 +19,9 @@ export function NumberTicker({
   className,
   decimalPlaces = 0,
 }: NumberTickerProps) {
+  const prefersReducedMotion = useReducedMotion();
   const ref = useRef<HTMLSpanElement>(null);
-  const motionValue = useMotionValue(direction === "down" ? value : 0);
+  const motionValue = useMotionValue(direction === "down" || prefersReducedMotion ? value : 0);
   const springValue = useSpring(motionValue, {
     damping: 30,
     stiffness: 100,
@@ -29,12 +30,16 @@ export function NumberTicker({
 
   useEffect(() => {
     if (isInView) {
+      if (prefersReducedMotion) {
+        motionValue.set(value);
+        return;
+      }
       const timer = setTimeout(() => {
         motionValue.set(direction === "down" ? 0 : value);
       }, delay * 1000);
       return () => clearTimeout(timer);
     }
-  }, [motionValue, isInView, delay, value, direction]);
+  }, [motionValue, isInView, delay, value, direction, prefersReducedMotion]);
 
   useEffect(() => {
     return springValue.on("change", (latest) => {
@@ -50,7 +55,7 @@ export function NumberTicker({
   return (
     <span
       className={cn(
-        "inline-block tabular-nums tracking-wider text-black dark:text-white",
+        "inline-block tabular-nums tracking-tight text-neutral-900",
         className
       )}
       ref={ref}
